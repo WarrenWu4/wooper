@@ -19,7 +19,9 @@ type Model struct {
 
 var (
     borderStyle = lipgloss.NewStyle().Border(lipgloss.ThickBorder()).Padding(0, 1)
-    placeholderStyle = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("240"))    
+    inBorderStyle = borderStyle.BorderForeground(lipgloss.Color("#9BEDAB"))
+    outBorderStyle = borderStyle.BorderForeground(lipgloss.Color("#9BA6ED"))
+    placeholderStyle = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("240"))
 )
 
 func (m Model) Init() tea.Cmd {
@@ -64,9 +66,7 @@ func (m Model) View() string {
     // create past entries
     var entries string
     for i := 0; i < len(m.outputs); i++ {
-        entries += borderStyle.Width(m.width-4).Render(m.inputs[i])
-        entries += "\n"
-        entries += borderStyle.Width(m.width-4).Render(m.outputs[i])
+        entries += outBorderStyle.Width(m.width-4).Render("> " + m.inputs[i] + "\n" + m.outputs[i])
         entries += "\n"
     }
     // add current entries
@@ -76,7 +76,7 @@ func (m Model) View() string {
     } else {
         inputText = m.inputs[m.idx]
     }
-    inBox := borderStyle.Width(m.width-4).Render("> " + inputText)
+    inBox := inBorderStyle.Width(m.width-4).Render("> " + inputText)
     return entries + inBox
 }
 
