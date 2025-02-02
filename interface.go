@@ -33,6 +33,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
     case tea.KeyMsg:
         switch msg.String() {
         case "ctrl+c":
+            killOllama()
             return m, tea.Quit
         case "backspace":
             if len(m.inputs[m.idx]) > 0 {
@@ -43,7 +44,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
             }
         case "enter":
             if len(m.inputs[m.idx]) > 0 {
-                m.outputs = append(m.outputs, m.inputs[m.idx])
+                out, err := runOllama(m.inputs[m.idx], "deepseek-r1:1.5b")
+                if err != nil {
+                    m.outputs = append(m.outputs, err.Error())
+                } else {
+                    m.outputs = append(m.outputs, out)
+                }
                 m.inputs = append(m.inputs, "")
                 m.idx++
                 m.placeholder = true

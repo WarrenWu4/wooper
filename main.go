@@ -14,5 +14,6 @@ func main() {
         fmt.Println("Ollama was not found. Please install.")
         os.Exit(1)
     }
+    serveOllama()
     startInterface()
 }

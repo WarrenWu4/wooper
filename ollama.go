@@ -2,8 +2,11 @@
 package main
 
 import (
-    "os/exec"
+	"fmt"
+	"os/exec"
 )
+
+var serveCmd *exec.Cmd
 
 // checks if ollama exists on the system
 func findOllama() bool {
@@ -13,19 +16,44 @@ func findOllama() bool {
 
 // starts ollama instance on a separate thread
 func serveOllama() bool{
-    cmd := exec.Command("ollama", "serve")
-    if err := cmd.Start(); err != nil {
+    serveCmd = exec.Command("ollama", "serve")
+    if err := serveCmd.Start(); err != nil {
         return false
     }
     return true
 }
 
+// kills ollama serve process
+func killOllama() {
+    serveCmd.Process.Kill()
+}
+
 // runs an ollama model in the command line
 // errors if the model doesn't exist
-func runOllama(model string) (bool, error) {
+func runOllama(prompt, model string) (string, error) {
+    promptCmd := exec.Command("echo", prompt)
     cmd := exec.Command("ollama", "run", model)
-    if err := cmd.Start(); err != nil {
-        return false, err
+
+    pipe, err := promptCmd.StdoutPipe()
+    if err != nil {
+        fmt.Println("Error creating pipe: ", err)
+        return "", err
     }
-    return true, nil
+    cmd.Stdin = pipe
+
+    if err := promptCmd.Start(); err != nil {
+        fmt.Println("Error starting echo cmd", err)
+        return "", err
+    }
+    out, err := cmd.CombinedOutput()
+    if err != nil {
+        fmt.Println("Error executing ollama cmd", err)
+        return "", err
+    }
+    if err := promptCmd.Wait(); err != nil {
+        fmt.Println("Error waiting for echo cmd", err)
+        return "", err
+    }
+    fmt.Println(string(out))
+    return string(out), nil
 }
